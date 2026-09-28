@@ -35,9 +35,10 @@ html { scroll-behavior: smooth; scroll-padding-top: calc(var(--nav-h) + 16px); }
   *, *::before, *::after { animation: none !important; transition-duration: .01ms !important; }
 }
 
+html { background: var(--bg); }
 body {
   margin: 0;
-  background: var(--bg);
+  background: transparent;
   color: var(--ink);
   font-family: var(--f-body);
   font-size: 16px;
@@ -175,8 +176,7 @@ img { max-width: 100%; display: block; }
   justify-content: flex-end; overflow: hidden;
   padding: calc(var(--nav-h) + 40px) 0 0;
   background:
-    radial-gradient(120% 90% at 78% 32%, #4a0d24 0%, #2a0716 32%, #120510 60%, var(--bg) 85%),
-    var(--bg);
+    radial-gradient(120% 90% at 78% 32%, #4a0d24e6 0%, #2a0716cc 34%, #1205109e 62%, transparent 86%);
 }
 /* drifting key light */
 .hero::before {
@@ -189,7 +189,17 @@ img { max-width: 100%; display: block; }
   from { transform: translate3d(-3%, -2%, 0) scale(1); }
   to   { transform: translate3d(4%, 3%, 0) scale(1.12); }
 }
-#terrain { position: absolute; inset: 0; width: 100%; height: 100%; opacity: .3; pointer-events: none; }
+#terrain {
+  position: fixed; inset: 0; width: 100%; height: 100%;
+  z-index: -2; opacity: .85; pointer-events: none;
+}
+/* keeps body copy readable over the moving mesh */
+.scrim {
+  position: fixed; inset: 0; z-index: -1; pointer-events: none;
+  background:
+    radial-gradient(140% 80% at 50% 0%, transparent 55%, #07060a94 95%),
+    linear-gradient(180deg, transparent 0 78%, #07060ab4 100%);
+}
 
 .hero-portrait {
   position: absolute; right: 0; bottom: 0; height: 92%; width: auto; max-width: none;

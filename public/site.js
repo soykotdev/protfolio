@@ -117,90 +117,129 @@
     lb.addEventListener('close', () => { img.src = ''; });
   }
 
-  // --- hero: 3D wireframe heightfield, perspective-projected by hand ---
+  // --- background: interactive 3D heightfield ---------------------------
+  // Hand-projected, no library. The vertex buffers are allocated once and
+  // rewritten in place: the previous version built ~1400 objects per frame,
+  // which is what made it stutter.
   const cv = $('terrain');
   if (!cv) return;
-  const ctx = cv.getContext('2d');
-  const COLS = 46, ROWS = 30;
-  let w, h, dpr;
+  const ctx = cv.getContext('2d', { alpha: true });
 
+  const COLS = 40, ROWS = 26, N = COLS * ROWS;
+  const SX = new Float32Array(N), SY = new Float32Array(N), HT = new Float32Array(N);
+  const CAM_H = 0.5;
+
+  let w = 0, h = 0;
   const resize = () => {
-    dpr = Math.min(devicePixelRatio || 1, 2);
-    w = cv.clientWidth; h = cv.clientHeight;
+    const dpr = Math.min(devicePixelRatio || 1, 2);
+    w = innerWidth; h = innerHeight;
     cv.width = w * dpr; cv.height = h * dpr;
     ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
   };
 
+  // pointer target vs. eased actual - easing is what makes it feel smooth
+  let tx = 0, ty = 0, ax = 0, ay = 0, tScroll = 0, aScroll = 0;
+  if (fine) {
+    addEventListener('pointermove', (e) => {
+      tx = e.clientX / innerWidth - 0.5;
+      ty = e.clientY / innerHeight - 0.5;
+    }, { passive: true });
+  }
+
   const css = (n, fb) => getComputedStyle(root).getPropertyValue(n).trim() || fb;
-
-  const elev = (u, v, t) =>
-    Math.sin(u * 2.1 + t) * Math.cos(v * 1.7 - t * 0.7) * 0.6 +
-    Math.sin(u * 4.3 - t * 1.3) * 0.22 +
-    Math.cos(v * 3.1 + t * 0.9) * 0.18;
-
-  // Camera sits CAM_H above the field looking along +z; classic 1/z divide.
-  // Near rows land low and wide, far rows converge on the horizon line.
-  const CAM_H = 0.5;
-  let pitch = 0;   // nudged by scroll so the camera tilts as the hero leaves
-  const project = (x, y, z) => {
-    const f = (w * 0.3) / z;
-    return { sx: w / 2 + x * f, sy: h * (0.06 + pitch) + (CAM_H - y) * f };
-  };
+  let hot = '#ff3b5c', mag = '#c9256f';
+  const readColours = () => { hot = css('--hot', hot); mag = css('--mag', mag); };
+  readColours();
 
   const draw = (ms) => {
-    const t = ms * 0.00035;
-    pitch = Math.min(scrollY / innerHeight, 1) * 0.22;
+    const t = ms * 0.00028;
+
+    // ease toward the targets, then derive the camera from them
+    ax += (tx - ax) * 0.045;
+    ay += (ty - ay) * 0.045;
+    tScroll = Math.min(scrollY / Math.max(innerHeight, 1), 2);
+    aScroll += (tScroll - aScroll) * 0.06;
+
+    const yaw = ax * 0.55;                    // sideways drift
+    const horizon = h * (0.26 + ay * 0.05 + aScroll * 0.07);
+    const travel = t * 0.45 + aScroll * 0.8;  // flying forward
+    const focal = w * 0.32;
+
     ctx.clearRect(0, 0, w, h);
-    const hot = css('--hot', '#ff3b5c');
-    const mag = css('--mag', '#c9256f');
+    ctx.lineWidth = 1;
 
-    const P = [];
-    for (let j = 0; j < ROWS; j++) {
-      const row = [];
-      for (let i = 0; i < COLS; i++) {
-        const u = (i / (COLS - 1) - 0.5) * 2.8;
-        const v = j / (ROWS - 1);
-        const z = 0.6 + v * 4.4;
-        const y = elev(u, z, t) * 0.16;
-        row.push({ ...project(u, y, z), h: y });
+    for (let j2 = 0; j2 < ROWS; j2++) {
+      const v = j2 / (ROWS - 1);
+      const z = 0.5 * Math.pow(14, v);   // geometric: even spacing on screen
+      const f = focal / z;
+      const row = j2 * COLS;
+      for (let i2 = 0; i2 < COLS; i2++) {
+        const u = (i2 / (COLS - 1) - 0.5) * 3.6;
+        const wz = z + travel;
+        // layered sines standing in for fractal terrain
+        let y =
+          Math.sin(u * 2.0 + wz * 0.9) * Math.cos(wz * 1.5 - t * 0.6) * 0.55 +
+          Math.sin(u * 4.1 - wz * 1.2) * 0.2 +
+          Math.cos(wz * 2.6 + u * 0.7) * 0.16;
+
+        // a soft swell under the cursor
+        const du = u - ax * 3.0, dv = v - (ay + 0.5);
+        y += 0.9 * Math.exp(-(du * du * 1.6 + dv * dv * 9.0));
+
+        y *= 0.26;
+        const k = row + i2;
+        HT[k] = y;
+        SX[k] = w / 2 + (u + yaw) * f;
+        SY[k] = horizon + (CAM_H - y) * f;
       }
-      P.push(row);
     }
 
-    const stroke = (pts, alpha, colour) => {
+    // depth lines, near rows brightest
+    for (let j2 = 0; j2 < ROWS; j2++) {
+      const row = j2 * COLS;
       ctx.beginPath();
-      pts.forEach((p, k) => (k ? ctx.lineTo(p.sx, p.sy) : ctx.moveTo(p.sx, p.sy)));
-      ctx.strokeStyle = colour;
-      ctx.globalAlpha = alpha;
-      ctx.lineWidth = 1;
+      ctx.moveTo(SX[row], SY[row]);
+      for (let i2 = 1; i2 < COLS; i2++) ctx.lineTo(SX[row + i2], SY[row + i2]);
+      ctx.strokeStyle = hot;
+      ctx.globalAlpha = 0.09 + (1 - j2 / ROWS) * 0.34;
       ctx.stroke();
-    };
-
-    for (let j = 0; j < ROWS; j++) {
-      const d = 1 - j / ROWS;
-      stroke(P[j], 0.04 + d * 0.26, hot);
-    }
-    for (let i = 0; i < COLS; i += 2) {
-      stroke(P.map((r) => r[i]), 0.07, mag);
     }
 
-    for (let j = 2; j < ROWS; j += 4) {
-      for (let i = 2; i < COLS; i += 5) {
-        const p = P[j][i];
-        if (p.h < 0.05) continue;
-        const d = 1 - j / ROWS;
+    // sparser cross lines
+    ctx.strokeStyle = mag;
+    ctx.globalAlpha = 0.13;
+    for (let i2 = 0; i2 < COLS; i2 += 2) {
+      ctx.beginPath();
+      ctx.moveTo(SX[i2], SY[i2]);
+      for (let j2 = 1; j2 < ROWS; j2++) ctx.lineTo(SX[j2 * COLS + i2], SY[j2 * COLS + i2]);
+      ctx.stroke();
+    }
+
+    // nodes riding the peaks
+    for (let j2 = 2; j2 < ROWS; j2 += 3) {
+      const d = 1 - j2 / ROWS;
+      for (let i2 = 2; i2 < COLS; i2 += 4) {
+        const k = j2 * COLS + i2, y = HT[k];
+        if (y < 0.05) continue;
         ctx.beginPath();
-        ctx.arc(p.sx, p.sy, 1.5 + p.h * 6, 0, 6.284);
-        ctx.fillStyle = p.h > 0.1 ? mag : hot;
-        ctx.globalAlpha = (0.3 + p.h * 2) * d;
+        ctx.arc(SX[k], SY[k], 1.4 + y * 5, 0, 6.283);
+        ctx.fillStyle = y > 0.11 ? mag : hot;
+        ctx.globalAlpha = (0.35 + y * 2.0) * d;
         ctx.fill();
       }
     }
     ctx.globalAlpha = 1;
   };
 
-  const loop = (t) => { draw(t); requestAnimationFrame(loop); };
-  addEventListener('resize', () => { resize(); if (still) draw(0); });
+  let raf = 0;
+  const loop = (ts) => { draw(ts); raf = requestAnimationFrame(loop); };
+  const start = () => { if (!raf) raf = requestAnimationFrame(loop); };
+  const stop = () => { cancelAnimationFrame(raf); raf = 0; };
+
+  addEventListener('resize', () => { resize(); if (still) draw(0); }, { passive: true });
+  // don't burn frames on a hidden tab
+  document.addEventListener('visibilitychange', () => (document.hidden ? stop() : still || start()));
+
   resize();
-  still ? draw(0) : requestAnimationFrame(loop);
+  still ? draw(0) : start();
 })();
