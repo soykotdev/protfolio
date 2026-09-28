@@ -34,6 +34,12 @@
     pill.style.opacity = '1';
     pill.style.width = a.offsetWidth + 'px';
     pill.style.transform = `translateX(${a.offsetLeft}px)`;
+    // keep the active link visible when the track is scrolled
+    const track = a.parentElement;
+    if (track.scrollWidth > track.clientWidth) {
+      const target = a.offsetLeft - (track.clientWidth - a.offsetWidth) / 2;
+      track.scrollTo({ left: Math.max(0, target), behavior: 'smooth' });
+    }
   };
 
   const byId = Object.fromEntries(links.map((a) => [a.getAttribute('href').slice(1), a]));
@@ -54,14 +60,22 @@
   // ponytail: CSS 3D transforms, no library. Fine pointers only — a tilt that
   // needs hover is noise on touch, and transform on :hover never resets there.
   if (!still && fine) {
-    document.querySelectorAll('.grid > .card, .gal figure').forEach((el) => {
+    document.querySelectorAll('.grid > .card, .certs > .cert, .maps > .map, .gal figure').forEach((el) => {
       el.addEventListener('pointermove', (e) => {
         const r = el.getBoundingClientRect();
         const x = (e.clientX - r.left) / r.width - 0.5;
         const y = (e.clientY - r.top) / r.height - 0.5;
-        el.style.transform = `rotateY(${x * 7}deg) rotateX(${-y * 7}deg) translateZ(10px)`;
+        // A running scroll-driven animation outranks inline styles in the
+        // cascade, so the entrance has to be switched off while tilting.
+        el.style.animation = 'none';
+        el.style.transform = `rotateY(${x * 7}deg) rotateX(${-y * 7}deg) translateZ(12px)`;
+        el.style.setProperty('--mx', (x + 0.5) * 100 + '%');
+        el.style.setProperty('--my', (y + 0.5) * 100 + '%');
       });
-      el.addEventListener('pointerleave', () => { el.style.transform = ''; });
+      el.addEventListener('pointerleave', () => {
+        el.style.transform = '';
+        el.style.animation = '';
+      });
     });
 
     // hero portrait drifts against the cursor — the "camera" breathing
@@ -127,13 +141,15 @@
   // Camera sits CAM_H above the field looking along +z; classic 1/z divide.
   // Near rows land low and wide, far rows converge on the horizon line.
   const CAM_H = 0.5;
+  let pitch = 0;   // nudged by scroll so the camera tilts as the hero leaves
   const project = (x, y, z) => {
     const f = (w * 0.3) / z;
-    return { sx: w / 2 + x * f, sy: h * 0.06 + (CAM_H - y) * f };
+    return { sx: w / 2 + x * f, sy: h * (0.06 + pitch) + (CAM_H - y) * f };
   };
 
   const draw = (ms) => {
     const t = ms * 0.00035;
+    pitch = Math.min(scrollY / innerHeight, 1) * 0.22;
     ctx.clearRect(0, 0, w, h);
     const hot = css('--hot', '#ff3b5c');
     const mag = css('--mag', '#c9256f');
