@@ -13,8 +13,21 @@ node test.mjs      # auth + save round-trip check (server must be running)
 
 The whole site is one JSON document: profile, metrics, and an ordered list of
 sections, each holding an ordered list of items. The editor loads it, you change
-it, it saves the whole thing back. Three endpoints: `GET`/`PUT /api/content` and
-`POST /api/upload`.
+it, it saves the whole thing back through `GET`/`PUT /api/content`.
+
+## Uploads and certificate protection
+
+Images and PDFs go straight from the browser to Cloudinary (Vercel caps request
+bodies at 4.5 MB); `POST /api/upload/sign` signs the upload and
+`POST /api/upload/url` returns the delivery URL. Files are capped at 10 MB, the
+Cloudinary free-plan limit. PDFs display their first page.
+
+Uploads with **Watermark** ticked (the default in `certs` sections) are stored as
+private `authenticated` assets and served only through a signed URL that carries
+a tiled "PORTFOLIO COPY · NOT VALID FOR VERIFICATION" overlay. The signature
+covers the transformation, so editing the URL to drop the watermark returns 401,
+and the clean original has no public URL. Rules live in `media.js`, shared with
+the bulk importer.
 
 - `MONGODB_URI` set → reads and writes Atlas, seeding from `content.json` on first run.
 - `MONGODB_URI` blank → reads and writes `content.json` on disk (local only).
@@ -32,7 +45,7 @@ the editor. Every item uses one shape, all fields optional:
 | `title`, `subtitle`, `meta` | heading, coloured subhead, small uppercase line |
 | `body` | paragraph, line breaks preserved |
 | `bullets[]`, `tags[]` | list, pill row |
-| `image`, `caption` | figure; opens in a lightbox under `certs` / `maps` |
+| `image`, `caption` | figure (image or PDF page 1); opens in a lightbox under `certs` / `maps` |
 | `link`, `linkLabel` | trailing link |
 | `accent` | `teal` or `amber` edge |
 | `level` | 0–100 meter, used by Skills |

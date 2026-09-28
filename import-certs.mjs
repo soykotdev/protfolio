@@ -4,11 +4,12 @@
 //   node import-certs.mjs           # dry run: show what matches what
 //   node import-certs.mjs --apply   # upload and save
 //
-// The server must be running. PDFs upload as images; Cloudinary renders page 1.
+// The server must be running. Originals are stored private and served only
+// as watermarked, signed URLs (see media.js). PDFs render as page 1.
 import fs from 'node:fs';
 import path from 'node:path';
 import 'dotenv/config';
-import { v2 as cloudinary } from 'cloudinary';
+import { configured, uploadFile, MAX_BYTES } from './media.js';
 
 const APPLY = process.argv.includes('--apply');
 const BASE = `http://127.0.0.1:${process.env.PORT || 3000}`;
@@ -17,11 +18,6 @@ const ROOT = path.resolve('..');
 const FOLDERS = ['1.Educational_certificates', '4. Job Certificates', '5.All_Training_certificates', '8. Extra Curriculum', '11. Schoolarship'];
 const OK = /\.(pdf|jpe?g|png)$/i;
 
-cloudinary.config({
-  cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
-  api_key: process.env.CLOUDINARY_API_KEY,
-  api_secret: process.env.CLOUDINARY_API_SECRET,
-});
 
 const words = (s) => (s || '').toLowerCase().match(/[a-z]{3,}/g) || [];
 const STOP = new Set(['certificate', 'certificateofcompletion', 'the', 'and', 'with', 'for', 'certificates', 'main', 'file', 'page']);
@@ -99,19 +95,19 @@ for (const p of plan) {
 }
 
 if (!APPLY) { console.log('\ndry run. re-run with --apply to upload.'); process.exit(0); }
-if (!process.env.CLOUDINARY_CLOUD_NAME) { console.error('\nCloudinary is not configured in .env'); process.exit(1); }
+if (!configured()) { console.error('\nCloudinary is not configured in .env'); process.exit(1); }
 
 let done = 0;
 for (const p of plan) {
   if (!p.item) continue;
+  const size = fs.statSync(p.file).size;
+  if (size > MAX_BYTES) {
+    console.error(`skipped ${path.basename(p.file)}: ${(size / 1048576).toFixed(1)} MB is over Cloudinary's 10 MB cap`);
+    continue;
+  }
   try {
-    const r = await cloudinary.uploader.upload(p.file, {
-      folder: 'portfolio/certificates',
-      resource_type: 'image',
-      format: 'jpg',
-      transformation: [{ width: 1600, height: 1600, crop: 'limit', quality: 'auto:good' }],
-    });
-    p.item.image = r.secure_url;
+    // every certificate: private original, watermarked signed delivery URL
+    p.item.image = await uploadFile(p.file, { protect: true });
     done++;
     console.log(`uploaded ${path.basename(p.file)}`);
   } catch (e) {

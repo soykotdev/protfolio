@@ -38,6 +38,8 @@ text-transform:uppercase;color:var(--ink3);margin-bottom:5px}
 .muted{color:var(--ink3);font-size:.82rem}
 #login{max-width:380px;margin:14vh auto;text-align:center}
 .hide{display:none}
+.check{display:flex;align-items:center;gap:8px;margin-top:8px;font-size:.84rem;color:var(--ink2);cursor:pointer}
+.check input{width:auto;margin:0}
 .toast{position:fixed;right:18px;bottom:18px;z-index:40;background:var(--s1);border:1px solid var(--teal);
 border-radius:10px;padding:11px 16px;font-size:.86rem;opacity:0;transition:.2s;pointer-events:none}
 .toast[data-on="1"]{opacity:1}
@@ -120,23 +122,56 @@ const move = (arr, i, d) => {
   render();
 };
 
-const upload = async (file, done) => {
-  if (file.size > 10 * 1024 * 1024) return toast('Image is over 10 MB.', true);
-  const data = await new Promise((res) => { const r = new FileReader(); r.onload = () => res(r.result); r.readAsDataURL(file); });
-  toast('Uploading…');
-  try { const { url } = await api('/api/upload', { method: 'POST', body: JSON.stringify({ data }) }); done(url); toast('Uploaded'); }
-  catch (e) { toast(e.message, true); }
+// Files go straight from the browser to Cloudinary: Vercel rejects request
+// bodies over 4.5 MB, and certificate scans are often larger. The server only
+// signs the upload and then builds the (watermarked, signed) delivery URL.
+const MAX = 10 * 1024 * 1024; // Cloudinary free-plan cap per file
+const upload = async (file, protect, done) => {
+  const pdf = file.type === 'application/pdf';
+  if (!pdf && !file.type.startsWith('image/')) return toast('Upload an image or a PDF.', true);
+  if (file.size > MAX) {
+    return toast(`${(file.size / 1048576).toFixed(1)} MB is over the 10 MB limit. Compress it or export page 1 as a JPG.`, true);
+  }
+  toast(protect ? 'Uploading privately…' : 'Uploading…');
+  try {
+    const sig = await api('/api/upload/sign', { method: 'POST', body: JSON.stringify({ protect }) });
+    const fd = new FormData();
+    fd.append('file', file);
+    for (const k of ['api_key', 'timestamp', 'signature', 'folder', 'type']) fd.append(k, sig[k]);
+    const res = await fetch(`https://api.cloudinary.com/v1_1/${sig.cloud_name}/image/upload`, { method: 'POST', body: fd });
+    const up = await res.json();
+    if (!res.ok) throw new Error(up.error?.message || 'Cloudinary rejected the file.');
+    const { url } = await api('/api/upload/url', {
+      method: 'POST', body: JSON.stringify({ publicId: up.public_id, format: up.format }),
+    });
+    done(url);
+    toast(protect ? 'Uploaded with watermark. Click Save.' : 'Uploaded. Click Save.');
+  } catch (e) { toast(e.message, true); }
 };
 
-const imageField = (obj, key, capKey) => {
+const imageField = (obj, key, capKey, protectDefault = false) => {
   const box = document.createElement('div');
   const l = document.createElement('label');
-  l.innerHTML = '<span>Image</span>';
+  l.innerHTML = '<span>Image or PDF</span>';
   const f = document.createElement('input');
-  f.type = 'file'; f.accept = 'image/*';
-  f.onchange = () => f.files[0] && upload(f.files[0], (u) => { obj[key] = u; render(); });
+  f.type = 'file'; f.accept = 'image/*,application/pdf';
+
+  const wm = document.createElement('label');
+  wm.className = 'check';
+  wm.innerHTML = '<input type="checkbox"> Watermark and keep the original private';
+  const box2 = wm.querySelector('input');
+  box2.checked = protectDefault;
+
+  f.onchange = () => f.files[0] && upload(f.files[0], box2.checked, (u) => { obj[key] = u; render(); });
   l.appendChild(f);
   box.appendChild(l);
+  box.appendChild(wm);
+  if (protectDefault) {
+    const n = document.createElement('p');
+    n.className = 'muted';
+    n.textContent = 'PDFs show their first page. Watermarked files are served only through a signed link; editing the link to remove the watermark breaks it.';
+    box.appendChild(n);
+  }
   box.appendChild(field('Image URL', obj[key], (v) => (obj[key] = v)));
   if (capKey) box.appendChild(field('Caption', obj[capKey], (v) => (obj[capKey] = v)));
   if (obj[key]) { const im = document.createElement('img'); im.src = obj[key]; im.className = 'thumb'; box.appendChild(im); }
@@ -238,7 +273,7 @@ function render() {
       d.appendChild(field('body', it.body, (v) => (it.body = v), true));
       d.appendChild(listField('bullets', it.bullets, (v) => (it.bullets = v)));
       d.appendChild(listField('tags', it.tags, (v) => (it.tags = v)));
-      d.appendChild(imageField(it, 'image', 'caption'));
+      d.appendChild(imageField(it, 'image', 'caption', s.layout === 'certs'));
 
       const r2 = document.createElement('div');
       r2.className = 'row';

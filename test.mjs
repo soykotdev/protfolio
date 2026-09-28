@@ -41,6 +41,20 @@ assert.equal((await (await hit('/api/content')).json()).meta.tagline, probe, 'ed
 await hit('/api/content', { method: 'PUT', headers: { 'x-admin-key': KEY }, body: JSON.stringify(content) });
 assert.equal((await (await hit('/api/content')).json()).meta.tagline, content.meta.tagline, 'restored');
 
+// uploads: signing and URL minting are admin-only, and ids are validated
+const post = (path, body, key) => hit(path, { method: 'POST', body: JSON.stringify(body), headers: key ? { 'x-admin-key': key } : {} });
+assert.equal((await post('/api/upload/sign', { protect: true })).status, 401, 'unauthenticated upload signing is rejected');
+assert.equal((await post('/api/upload/url', { publicId: 'portfolio/certificates/x' })).status, 401, 'unauthenticated URL minting is rejected');
+assert.equal((await post('/api/upload/url', { publicId: '../secret' }, KEY)).status, 400, 'bad public ids are rejected');
+assert.equal((await post('/api/upload/url', { publicId: 'portfolio/../x' }, KEY)).status, 400, 'path traversal ids are rejected');
+const minted = await post('/api/upload/url', { publicId: 'portfolio/certificates/probe', format: 'pdf' }, KEY);
+if (minted.status === 200) {
+  const { url } = await minted.json();
+  assert.match(url, /\/image\/authenticated\/s--/, 'certificate URLs are private and signed');
+  assert.match(url, /l_text/, 'certificate URLs carry the watermark');
+  assert.match(url, /pg_1/, 'PDF certificates render page 1');
+}
+
 assert.equal((await hit('/')).status, 200, 'public page renders');
 assert.equal((await hit('/admin')).status, 200, 'admin page renders');
 

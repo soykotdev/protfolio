@@ -5,7 +5,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { MongoClient } from 'mongodb';
-import { v2 as cloudinary } from 'cloudinary';
+import { configured as mediaReady, signUpload, deliveryUrl } from './media.js';
 
 const DIR = path.dirname(fileURLToPath(import.meta.url));
 const FILE = path.join(DIR, 'content.json');
@@ -48,14 +48,6 @@ const write = async (doc) => {
   fs.writeFileSync(FILE, JSON.stringify(doc, null, 2));
 };
 
-if (process.env.CLOUDINARY_CLOUD_NAME) {
-  cloudinary.config({
-    cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
-    api_key: process.env.CLOUDINARY_API_KEY,
-    api_secret: process.env.CLOUDINARY_API_SECRET,
-  });
-}
-
 const PASS = process.env.ADMIN_PASSWORD || '';
 function auth(req, res, next) {
   const a = Buffer.from(req.get('x-admin-key') || '');
@@ -69,7 +61,7 @@ function auth(req, res, next) {
 const app = express();
 app.set('view engine', 'ejs');
 app.set('views', path.join(DIR, 'views'));
-app.use(express.json({ limit: '12mb' }));
+app.use(express.json({ limit: '2mb' }));
 app.use(express.static(path.join(DIR, 'public')));
 
 app.get('/', async (_req, res) => res.render('index', { c: await read() }));
@@ -90,23 +82,22 @@ app.put('/api/content', auth, async (req, res) => {
   res.json({ ok: true });
 });
 
-app.post('/api/upload', auth, async (req, res) => {
-  const data = req.body?.data;
-  if (typeof data !== 'string' || !data.startsWith('data:image/')) {
-    return res.status(400).json({ error: 'Send an image as a data URL.' });
+// Uploads go browser -> Cloudinary directly (Vercel caps request bodies at
+// 4.5 MB). The server only signs the request and later builds the URL.
+app.post('/api/upload/sign', auth, (req, res) => {
+  if (!mediaReady()) return res.status(503).json({ error: 'Cloudinary is not configured in .env.' });
+  res.json(signUpload({ protect: !!req.body?.protect }));
+});
+
+app.post('/api/upload/url', auth, (req, res) => {
+  const { publicId, format } = req.body || {};
+  if (typeof publicId !== 'string' || !/^portfolio(?:\/[\w-]+)+$/.test(publicId)) {
+    return res.status(400).json({ error: 'Unknown upload.' });
   }
-  if (!process.env.CLOUDINARY_CLOUD_NAME) {
-    return res.status(503).json({ error: 'Cloudinary is not configured in .env.' });
-  }
-  try {
-    const r = await cloudinary.uploader.upload(data, {
-      folder: 'portfolio',
-      transformation: [{ width: 1800, height: 1800, crop: 'limit', quality: 'auto:good' }],
-    });
-    res.json({ url: r.secure_url });
-  } catch (e) {
-    res.status(502).json({ error: 'Upload failed: ' + e.message });
-  }
+  if (!mediaReady()) return res.status(503).json({ error: 'Cloudinary is not configured in .env.' });
+  // Protection follows where the file was stored, never what the browser claims.
+  const protect = publicId.startsWith('portfolio/certificates/');
+  res.json({ url: deliveryUrl(publicId, { protect, isPdf: format === 'pdf' }) });
 });
 
 if (!SERVERLESS) {
