@@ -4,6 +4,21 @@
   const $ = (id) => document.getElementById(id);
   const still = matchMedia('(prefers-reduced-motion: reduce)').matches;
 
+  // --- theme: dark by default, light is opt-in and remembered ---
+  const themeBtn = $('themeBtn');
+  const applyTheme = (light) => {
+    if (light) root.dataset.theme = 'light';
+    else delete root.dataset.theme;
+    themeBtn?.setAttribute('aria-label', light ? 'Switch to dark theme' : 'Switch to light theme');
+    try { localStorage.setItem('nt-theme', light ? 'light' : 'dark'); } catch {}
+    dispatchEvent(new Event('themechange'));
+  };
+  if (themeBtn) {
+    themeBtn.setAttribute('aria-label',
+      root.dataset.theme === 'light' ? 'Switch to dark theme' : 'Switch to light theme');
+    themeBtn.onclick = () => applyTheme(root.dataset.theme !== 'light');
+  }
+
   // --- mobile drawer ---
   const drawer = $('drawer'), burger = $('burger');
   const setOpen = (v) => {
@@ -150,6 +165,7 @@
   let hot = '#ff3b5c', mag = '#c9256f';
   const readColours = () => { hot = css('--hot', hot); mag = css('--mag', mag); };
   readColours();
+  addEventListener('themechange', () => { readColours(); if (still) draw(0); });
 
   const draw = (ms) => {
     const t = ms * 0.00028;
