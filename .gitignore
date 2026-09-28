@@ -10,3 +10,5 @@ public/Image_side.jpg
 
 # handwritten signature - forgery asset, never commit
 public/signature.png
+.vercel
+.env*
