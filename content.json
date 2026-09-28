@@ -1,0 +1,597 @@
+{
+  "meta": {
+    "siteTitle": "Soykot Hossain Sarker",
+    "tagline": "Turning satellite passes into statutory plans",
+    "footer": "Built on contour lines and satellite passes."
+  },
+  "profile": {
+    "name": "Md Soykot Hossain Sarker",
+    "role": "Urban Planner & Geospatial Engineer",
+    "status": "Open to graduate study",
+    "summary": "Urban planner by training, geospatial engineer by practice. I build the elevation models, land-cover classifications and automation tools that district development plans and Risk-Sensitive Land Use Plans in Bangladesh are drawn on.",
+    "photo": "/photo.jpg",
+    "location": "Dhaka, Bangladesh",
+    "email": "soykot244@gmail.com",
+    "phone": "+880 1782 003045",
+    "links": [
+      {
+        "label": "LinkedIn",
+        "url": "https://www.linkedin.com/in/soykot2444/"
+      },
+      {
+        "label": "GitHub",
+        "url": "https://github.com/soykotdev"
+      },
+      {
+        "label": "Publication",
+        "url": "https://doi.org/10.1016/j.heliyon.2021.e08012"
+      }
+    ],
+    "specialties": [
+      "Urban & Regional Planning",
+      "Remote Sensing",
+      "UAV Photogrammetry",
+      "GIS Automation"
+    ]
+  },
+  "metrics": [
+    {
+      "value": "46",
+      "label": "Citations · Heliyon",
+      "accent": "teal"
+    },
+    {
+      "value": "3.39",
+      "label": "CGPA / 4.00",
+      "accent": ""
+    },
+    {
+      "value": "3",
+      "label": "Years in practice",
+      "accent": ""
+    },
+    {
+      "value": "10×",
+      "label": "Workflow speed-up",
+      "accent": "amber"
+    }
+  ],
+  "sections": [
+    {
+      "id": "objective",
+      "nav": "Objective",
+      "title": "Study objective",
+      "intro": "Two tracks that started separately and have converged in my working life.",
+      "layout": "cards",
+      "items": [
+        {
+          "title": "Planning",
+          "meta": "Track A · since 2017",
+          "accent": "teal",
+          "bullets": [
+            "Five years of formal training in urban and regional planning (BURP, PUST) — land use law, zoning, transport, municipal finance, development control.",
+            "Currently drafting district development plans and Risk-Sensitive Land Use Plans for the Urban Development Directorate.",
+            "Member of the Bangladesh Institute of Planners."
+          ]
+        },
+        {
+          "title": "Geoinformatics",
+          "meta": "Track B · since 2018",
+          "accent": "amber",
+          "bullets": [
+            "UAV photogrammetry end to end — flight planning, GCP integration, orthomosaic, DSM and DTM extraction in Metashape and Pix4D.",
+            "Sentinel-2 and Landsat time series for land-cover classification, change detection and land surface temperature retrieval.",
+            "Python and PyQGIS automation; two plugins in production use."
+          ]
+        }
+      ]
+    },
+    {
+      "id": "research",
+      "nav": "Research",
+      "title": "Peer-reviewed research",
+      "intro": "One journal article, co-authored as an undergraduate, now cited 46 times.",
+      "layout": "cards",
+      "items": [
+        {
+          "title": "Thermal and ecological assessment based on land surface temperature in Bogura, Bangladesh",
+          "subtitle": "Heliyon 7(9), e08012 · Elsevier",
+          "meta": "2021 · 46 citations",
+          "accent": "teal",
+          "body": "Tracked land surface temperature across Bogura Sadar from multitemporal Landsat imagery spanning 2001–2020 and quantified the environmental factors driving it. Mean LST rose 0.62 °C over twenty years.",
+          "bullets": [
+            "Land cover classification across the full image series",
+            "Land surface temperature extraction via the radiative transfer equation",
+            "Thematic map production and spatial analysis"
+          ],
+          "tags": [
+            "Landsat",
+            "LST retrieval",
+            "Change detection"
+          ],
+          "link": "https://doi.org/10.1016/j.heliyon.2021.e08012",
+          "linkLabel": "Read the paper"
+        },
+        {
+          "title": "Undergraduate thesis — land use change and surface temperature",
+          "subtitle": "Pabna University of Science & Technology",
+          "meta": "2023",
+          "body": "Analysed the pattern of land use / land cover change and quantified its effect on land surface temperature in Bogura Municipality using supervised classification and radiative-transfer LST retrieval.",
+          "tags": [
+            "LULC",
+            "Supervised classification"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "experience",
+      "nav": "Experience",
+      "title": "Professional experience",
+      "intro": "Three consecutive geospatial roles across a consultancy, a national research institute and a planning firm working for government.",
+      "layout": "timeline",
+      "items": [
+        {
+          "title": "Urban Planner",
+          "subtitle": "Geomark Limited · Photogrammetry & Planning, Dhaka",
+          "meta": "Jul 2025 — present",
+          "accent": "teal",
+          "bullets": [
+            "Contribute to district development plans and Risk-Sensitive Land Use Plans for the Urban Development Directorate.",
+            "Build and maintain the physical feature, topographic and land use GIS databases those plans are drawn from.",
+            "Process UAV imagery into Digital Elevation and Digital Surface Models; produce base, zoning and field validation maps.",
+            "Lead the GIS team — train junior colleagues and review analytical output."
+          ],
+          "tags": [
+            "RSLUP",
+            "DEM / DSM",
+            "Zoning",
+            "Team lead"
+          ]
+        },
+        {
+          "title": "Junior GIS Analyst",
+          "subtitle": "ACE Consultants Ltd · subsidiary of SMEC International, Dhaka",
+          "meta": "Jun 2024 — Jun 2025",
+          "bullets": [
+            "Processed UAV imagery into orthomosaics, DTMs and DSMs for topographic analysis.",
+            "Supported UAV data collection through flight planning and ground control point integration.",
+            "Wrote a QGIS plugin and Python tooling that automated a multi-step DSM / DTM extraction workflow.",
+            "Converted AutoCAD drawings into spatial data formats and ran QC on survey data."
+          ],
+          "tags": [
+            "Metashape",
+            "PyQGIS",
+            "Cadastral",
+            "AutoCAD → GIS"
+          ]
+        },
+        {
+          "title": "Research Consultant",
+          "subtitle": "CEGIS · Remote Sensing division, Dhaka",
+          "meta": "Nov 2023 — May 2024",
+          "bullets": [
+            "Classified land use and seasonal cropping patterns across southern Bangladesh from Sentinel-2 and Landsat imagery.",
+            "Produced detailed land use zoning maps from the classification results.",
+            "Managed project geodatabases and compiled spatial data for large-scale analysis."
+          ],
+          "tags": [
+            "Sentinel-2",
+            "Landsat",
+            "Geodatabase"
+          ]
+        },
+        {
+          "title": "Intern",
+          "subtitle": "Ishwardi Municipality · Pabna",
+          "meta": "Jul — Aug 2022",
+          "bullets": [
+            "Assisted the Executive Engineer with coordination of building approval processes.",
+            "Supported development of a municipal dumping site project."
+          ],
+          "tags": [
+            "Development control"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "experience-certificates",
+      "nav": "Job Certificates",
+      "title": "Experience certificates",
+      "intro": "Employment documents issued by each previous employer.",
+      "layout": "certs",
+      "items": [
+        {
+          "title": "Employment Certificate",
+          "subtitle": "Geomark Limited",
+          "meta": "Jul 2025 – present",
+          "body": "Urban Planner — currently employed; certificate issued on request.",
+          "accent": "teal"
+        },
+        {
+          "title": "Experience Certificate — Junior GIS Analyst",
+          "subtitle": "ACE Consultants Ltd (SMEC International)",
+          "meta": "20 Jul 2025",
+          "body": "Ref ACE/HR/8576 — Junior GIS Analyst, 06 Jun 2024 to 30 Jun 2025",
+          "accent": "teal"
+        },
+        {
+          "title": "No-Objection Certificate",
+          "subtitle": "CEGIS",
+          "meta": "2024",
+          "body": "Remote Sensing division"
+        },
+        {
+          "title": "Internship Certificate",
+          "subtitle": "Ishwardi Municipality",
+          "meta": "Aug 2022"
+        }
+      ]
+    },
+    {
+      "id": "skills",
+      "nav": "Skills",
+      "title": "Technical competencies",
+      "intro": "Levels stated as they would stand up in a working test, not aspirationally.",
+      "layout": "cards",
+      "items": [
+        {
+          "title": "GIS platforms",
+          "meta": "Advanced",
+          "level": 90,
+          "tags": [
+            "QGIS",
+            "ArcGIS Pro",
+            "ArcGIS Enterprise",
+            "ERDAS IMAGINE",
+            "Global Mapper"
+          ]
+        },
+        {
+          "title": "UAV & photogrammetry",
+          "meta": "Advanced",
+          "level": 85,
+          "tags": [
+            "Agisoft Metashape",
+            "Pix4D Mapper",
+            "Drone2Map",
+            "GCP integration"
+          ]
+        },
+        {
+          "title": "Remote sensing",
+          "meta": "Advanced",
+          "level": 88,
+          "tags": [
+            "Sentinel-2",
+            "Landsat",
+            "Supervised classification",
+            "LST retrieval"
+          ]
+        },
+        {
+          "title": "Programming & automation",
+          "meta": "Applied",
+          "level": 76,
+          "tags": [
+            "Python",
+            "PyQGIS",
+            "QGIS plugin development",
+            "R · basic"
+          ]
+        },
+        {
+          "title": "Field data & QC",
+          "meta": "Proficient",
+          "level": 80,
+          "tags": [
+            "Mergin Maps",
+            "KoboToolbox",
+            "Survey QC",
+            "AutoCAD → GIS"
+          ]
+        },
+        {
+          "title": "Analysis & reporting",
+          "meta": "Proficient",
+          "level": 72,
+          "tags": [
+            "SPSS",
+            "Spatial statistics",
+            "Spatial machine learning"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "code",
+      "nav": "Code",
+      "title": "Open-source tooling",
+      "intro": "Both tools were written to remove real bottlenecks on live consultancy projects, then released publicly.",
+      "layout": "cards",
+      "items": [
+        {
+          "title": "DSM / DTM Extractor",
+          "subtitle": "QGIS plugin · Python",
+          "meta": "10 steps → 1 · 10× faster",
+          "accent": "amber",
+          "body": "Extracts Digital Surface and Digital Terrain Models according to project-specific preferences. Ten manual steps collapsed into one automated operation.",
+          "tags": [
+            "PyQGIS",
+            "Raster processing"
+          ],
+          "link": "https://github.com/soykotdev/DTM_DSM_Extractor",
+          "linkLabel": "View on GitHub"
+        },
+        {
+          "title": "Mouza-Map Plot Numbering",
+          "subtitle": "QGIS plugin · Python",
+          "meta": "Thousands of plots",
+          "accent": "amber",
+          "body": "Numbers cadastral plots sequentially across Mouza maps. Written for the Land Acquisition Plan at SMEC, then packaged as a plugin.",
+          "tags": [
+            "PyQGIS",
+            "Cadastral data"
+          ],
+          "link": "https://github.com/soykotdev/mapplotter/",
+          "linkLabel": "View on GitHub"
+        }
+      ]
+    },
+    {
+      "id": "maps",
+      "nav": "Maps",
+      "title": "Map portfolio",
+      "intro": "Cartographic and analytical output. Upload a map in the admin panel and describe the data, method and study area.",
+      "layout": "maps",
+      "items": [
+        {
+          "title": "Land surface temperature, Bogura Municipality",
+          "subtitle": "Bogura, Bangladesh",
+          "meta": "Landsat 8 · 2001–2020",
+          "body": "Mean land surface temperature retrieved via the radiative transfer equation across a twenty-year series, classified into thermal zones and overlaid on the municipal boundary. Example entry — replace the image and text with your own map.",
+          "tags": [
+            "Landsat 8",
+            "EPSG:32646",
+            "QGIS",
+            "RTE retrieval"
+          ],
+          "accent": "teal"
+        },
+        {
+          "title": "Land use / land cover classification",
+          "subtitle": "Southern Bangladesh",
+          "meta": "Sentinel-2 · seasonal composite",
+          "body": "Supervised classification of seasonal cropping patterns from Sentinel-2 composites, validated against field survey points. Example entry — replace with your own map.",
+          "tags": [
+            "Sentinel-2",
+            "Supervised classification",
+            "ArcGIS Pro"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "education",
+      "nav": "Education",
+      "title": "Academic record",
+      "intro": "Grades on the Bangladeshi scale with an indicative German conversion.",
+      "layout": "cards",
+      "items": [
+        {
+          "title": "Bachelor of Urban & Regional Planning",
+          "subtitle": "Pabna University of Science & Technology",
+          "meta": "Mar 2017 — Jan 2023",
+          "accent": "teal",
+          "body": "CGPA 3.39 / 4.00 · 163 credit hours · German equivalent ≈ 1.9 (modified Bavarian formula, indicative only).",
+          "tags": [
+            "Thesis: LULC change and land surface temperature"
+          ]
+        },
+        {
+          "title": "Higher Secondary Certificate",
+          "subtitle": "Govt. Shah Sultan College, Bogura",
+          "meta": "2014 — 2016",
+          "body": "Science · GPA 4.58 / 5.00"
+        },
+        {
+          "title": "Bangladesh Institute of Planners",
+          "subtitle": "Professional membership",
+          "meta": "Since Sep 2023",
+          "body": "Member ID 2125 — full member of the national professional body for planners."
+        }
+      ]
+    },
+    {
+      "id": "certifications",
+      "nav": "Certifications",
+      "title": "Certifications",
+      "intro": "Original documents held for every entry; scans available on request.",
+      "layout": "certs",
+      "items": [
+        {
+          "title": "Spatial Machine Learning and Statistics in Python",
+          "subtitle": "LinkedIn Learning",
+          "meta": "May 2026",
+          "body": "ID 811078a3df251055db888a80335b7b5ab30140303b4c62c59d441e31c07685d8",
+          "tags": [
+            "Machine Learning",
+            "Spatial Analysis",
+            "Python"
+          ]
+        },
+        {
+          "title": "Drone Analysis with Drone2Map and ArcGIS Online",
+          "subtitle": "LinkedIn Learning",
+          "meta": "May 2026",
+          "body": "ID 6b2bb84d10d6111eec7ef44a5abaf7095126c8795becb6b0a23c3e240e0e091c",
+          "tags": [
+            "Drone Mapping",
+            "GIS",
+            "ArcGIS Pro"
+          ]
+        },
+        {
+          "title": "An Introduction to Python Programming with a GIS Focus",
+          "subtitle": "Final Draft Mapping Ltd",
+          "meta": "May 2025",
+          "tags": [
+            "Python",
+            "Geoprocessing",
+            "Automation"
+          ]
+        },
+        {
+          "title": "Advanced Application of GIS and Remote Sensing",
+          "subtitle": "URP Department, PUST",
+          "meta": "Nov 2018",
+          "body": "Satellite image processing, classification, change detection, site suitability analysis",
+          "tags": [
+            "Remote Sensing",
+            "Thematic mapping"
+          ]
+        },
+        {
+          "title": "Data Analysis with SPSS",
+          "subtitle": "Certificate on file",
+          "meta": "—",
+          "tags": [
+            "SPSS",
+            "Hypothesis testing",
+            "Regression"
+          ]
+        },
+        {
+          "title": "Visualizing Building Information Modelling through SuperMap GIS",
+          "subtitle": "SuperMap Software Co., Ltd",
+          "meta": "Feb 2021",
+          "tags": [
+            "BIM",
+            "3D visualisation"
+          ]
+        },
+        {
+          "title": "1st SuperMap Webinar Philippines",
+          "subtitle": "SuperMap Software Co., Ltd",
+          "meta": "May 2020",
+          "tags": [
+            "GIS platforms"
+          ]
+        },
+        {
+          "title": "Digital Marketing",
+          "subtitle": "Certificate on file",
+          "meta": "—",
+          "tags": [
+            "Digital Marketing"
+          ]
+        },
+        {
+          "title": "Membership — Bangladesh Institute of Planners",
+          "subtitle": "BIP",
+          "meta": "Since Sep 2023",
+          "body": "Member ID 2125",
+          "accent": "teal",
+          "tags": [
+            "Professional body"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "credentials",
+      "nav": "Credentials",
+      "title": "Academic & organisational credentials",
+      "intro": "Degree certificates and documents issued by the organisations I served.",
+      "layout": "certs",
+      "items": [
+        {
+          "title": "Bachelor of Urban & Regional Planning",
+          "subtitle": "Pabna University of Science & Technology",
+          "meta": "Jan 2023",
+          "body": "CGPA 3.39 / 4.00 · 163 credit hours",
+          "accent": "teal"
+        },
+        {
+          "title": "Higher Secondary Certificate",
+          "subtitle": "Govt. Shah Sultan College, Bogura",
+          "meta": "2016",
+          "body": "Science · GPA 4.58 / 5.00"
+        },
+        {
+          "title": "Secondary School Certificate",
+          "subtitle": "Education Board",
+          "meta": "2014"
+        },
+        {
+          "title": "Certificate of Appreciation",
+          "subtitle": "United Students of Bogura, PUST",
+          "meta": "2022–2023",
+          "body": "1st Vice-President"
+        },
+        {
+          "title": "Sports Secretary Certificate",
+          "subtitle": "URP Association, PUST",
+          "meta": "2019–2022"
+        },
+        {
+          "title": "Experience Certificate — Joint Secretary",
+          "subtitle": "Hiyatpur Society",
+          "meta": "Jul 2020 – Jul 2023",
+          "body": "Joint Secretary — with referee contact"
+        }
+      ]
+    },
+    {
+      "id": "extracurricular",
+      "nav": "Extracurricular",
+      "title": "Leadership & social commitment",
+      "intro": "Roles with certificates on file.",
+      "layout": "cards",
+      "items": [
+        {
+          "title": "Joint Secretary",
+          "subtitle": "Hiyatpur Society",
+          "meta": "2020 — 2023 · Gaibandha",
+          "body": "Community welfare in a rural village society. Coordinated oxygen cylinder support during COVID-19, tree distribution for environmental awareness, and annual Iftar and Sehri provision for underprivileged families.",
+          "tags": [
+            "COVID response",
+            "Volunteer coordination"
+          ]
+        },
+        {
+          "title": "1st Vice-President",
+          "subtitle": "United Students of Bogura, PUST",
+          "meta": "2022 — 2023",
+          "body": "Led the executive committee of a regional student association. Planned cultural programmes, seminars and workshops, and organised volunteer support for prospective students.",
+          "tags": [
+            "Committee leadership"
+          ]
+        },
+        {
+          "title": "Sports Secretary",
+          "subtitle": "URP Association, PUST",
+          "meta": "2019 — 2022",
+          "body": "Ran departmental cricket and football tournaments end to end — scheduling, team coordination, registration and logistics.",
+          "tags": [
+            "Logistics"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "contact",
+      "nav": "Contact",
+      "title": "Contact",
+      "intro": "Available for interview in any time zone.",
+      "layout": "text",
+      "items": [
+        {
+          "title": "References",
+          "body": "Academic references from PUST and professional references from ACE / SMEC and Hiyatpur Society are available on request."
+        }
+      ]
+    }
+  ]
+}

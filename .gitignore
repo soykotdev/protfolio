@@ -1,0 +1,12 @@
+node_modules/
+.env
+.env.*
+!.env.example
+.vercel/
+
+# originals kept locally; the optimised hero-*.jpg are what the site serves
+public/Image_Front.png
+public/Image_side.jpg
+
+# handwritten signature - forgery asset, never commit
+public/signature.png

@@ -1,0 +1,217 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title><%= c.meta?.siteTitle || c.profile.name %></title>
+<meta name="description" content="<%= c.profile.summary %>">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&display=swap">
+<link rel="stylesheet" href="/site.css">
+</head>
+<body>
+<i class="progress" id="prog"></i>
+
+<header class="nav" id="nav">
+  <div class="nav-in">
+    <a class="brand" href="#top">
+      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true">
+        <path d="M2 17c3-4 6 2 9-2s5 1 11-4"/><path d="M2 21c3-4 6 2 9-2s5 1 11-4"/>
+        <circle cx="8" cy="7" r="2"/><circle cx="16" cy="4" r="2"/><path d="M9.7 6.2 14.3 4.6"/>
+      </svg>
+      <span>
+        <b><% const n = c.profile.name.replace(/^Md\s+/i, '').split(' '); %><%= n[0] + ' ' + n[n.length - 1] %></b>
+        <small>NeuralTerrain</small>
+      </span>
+    </a>
+
+    <nav class="nav-links" id="navlinks">
+      <span class="pill" id="pill" aria-hidden="true"></span>
+      <a href="#about">About</a>
+      <% c.sections.forEach(s => { %><a href="#<%= s.id %>"><%= s.nav || s.title %></a><% }) %>
+    </nav>
+
+    <a class="cta" href="mailto:<%= c.profile.email %>">Get in touch <i>↗</i></a>
+    <button class="burger" id="burger" type="button" aria-label="Menu" aria-expanded="false">
+      <span></span><span></span>
+    </button>
+  </div>
+</header>
+
+<div class="drawer" id="drawer">
+  <a href="#about">About</a>
+  <% c.sections.forEach(s => { %><a href="#<%= s.id %>"><%= s.nav || s.title %></a><% }) %>
+  <a class="btn solid" href="mailto:<%= c.profile.email %>">Get in touch</a>
+</div>
+
+<main id="top">
+  <div class="hero">
+    <canvas id="terrain" aria-hidden="true"></canvas>
+    <img class="hero-portrait" src="/hero-side.jpg" alt="<%= c.profile.name %>" fetchpriority="high">
+
+    <div class="wrap hero-copy">
+      <p class="hey reveal">Hey, I&rsquo;m</p>
+      <h1 class="reveal"><%= c.profile.name.replace(/^Md\s+/i, '') %></h1>
+      <p class="title reveal"><%= c.profile.role %></p>
+      <p class="pitch reveal"><%= c.profile.summary %></p>
+      <div class="links reveal">
+        <a class="btn solid" href="mailto:<%= c.profile.email %>">Get in touch</a>
+        <% (c.profile.links || []).forEach(l => { %>
+          <a class="btn" href="<%= l.url %>" target="_blank" rel="noopener"><%= l.label %> ↗</a>
+        <% }) %>
+      </div>
+    </div>
+
+    <% if (c.profile.specialties?.length) { %>
+    <div class="specs">
+      <ol>
+        <% c.profile.specialties.forEach((s, i) => { %>
+          <li><b>#<%= String(i + 1).padStart(2, '0') %></b><%= s %></li>
+        <% }) %>
+      </ol>
+    </div>
+    <% } %>
+  </div>
+
+  <section id="about">
+    <div class="wrap about">
+      <figure><img src="/hero-front.jpg" alt="<%= c.profile.name %>" loading="lazy"></figure>
+      <div>
+        <p class="eyebrow">Behind the maps</p>
+        <h2><%= c.meta?.tagline || 'Turning satellite passes into statutory plans' %></h2>
+        <div class="metrics">
+          <% (c.metrics || []).forEach(m => { %>
+            <div class="metric">
+              <span class="v <%= m.accent || '' %>"><%= m.value %></span>
+              <span class="k"><%= m.label %></span>
+            </div>
+          <% }) %>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <% c.sections.forEach(s => { %>
+  <section id="<%= s.id %>">
+    <div class="wrap">
+      <div class="shead"><h2><%= s.title %></h2></div>
+      <% if (s.intro) { %><p class="sintro"><%= s.intro %></p><% } %>
+
+      <%
+        const item = (it) => { %>
+          <article class="card <%= it.accent || '' %>">
+            <% if (it.image) { %>
+              <figure>
+                <img src="<%= it.image %>" alt="<%= it.caption || it.title || '' %>" loading="lazy">
+                <% if (it.caption) { %><figcaption><%= it.caption %></figcaption><% } %>
+              </figure>
+            <% } %>
+            <% if (it.meta) { %><p class="eyebrow"><%= it.meta %></p><% } %>
+            <% if (it.title) { %><h3><%= it.title %></h3><% } %>
+            <% if (it.subtitle) { %><p class="sub"><%= it.subtitle %></p><% } %>
+            <% if (typeof it.level === 'number') { %><div class="meter"><i style="width:<%= it.level %>%"></i></div><% } %>
+            <% if (it.body) { %><p class="body"><%= it.body %></p><% } %>
+            <% if (it.bullets?.length) { %><ul><% it.bullets.forEach(b => { %><li><%= b %></li><% }) %></ul><% } %>
+            <% if (it.tags?.length) { %><div class="tags"><% it.tags.forEach(t => { %><span class="tag"><%= t %></span><% }) %></div><% } %>
+            <% if (it.link) { %><p style="margin-top:6px"><a href="<%= it.link %>" target="_blank" rel="noopener"><%= it.linkLabel || 'Open' %> ↗</a></p><% } %>
+          </article>
+      <% };
+
+      if (!s.items?.length) { %>
+        <p class="empty">Nothing here yet — add items from the admin panel.</p>
+      <% } else if (s.layout === 'gallery') { %>
+        <div class="gal">
+          <% s.items.forEach(it => { %>
+            <figure>
+              <% if (it.image) { %><img src="<%= it.image %>" alt="<%= it.caption || it.title || '' %>" loading="lazy"><% } %>
+              <figcaption><% if (it.title) { %><b><%= it.title %></b><% } %><%= it.caption || '' %></figcaption>
+            </figure>
+          <% }) %>
+        </div>
+      <% } else if (s.layout === 'maps') { %>
+        <div class="maps">
+          <% s.items.forEach(it => { %>
+            <figure class="map">
+              <% if (it.image) { %>
+                <button class="map-shot" type="button" data-full="<%= it.image %>"
+                        data-title="<%= it.title || '' %>" aria-label="Enlarge <%= it.title || 'map' %>">
+                  <img src="<%= it.image %>" alt="<%= it.title || 'Map' %>" loading="lazy">
+                  <span class="zoom">Enlarge</span>
+                </button>
+              <% } else { %>
+                <div class="map-shot empty-shot" aria-hidden="true">
+                  <svg width="34" height="34" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.3">
+                    <path d="M9 3 3 5.5v15L9 18l6 3 6-2.5v-15L15 6 9 3Z"/><path d="M9 3v15M15 6v15"/>
+                  </svg>
+                </div>
+              <% } %>
+              <figcaption>
+                <% if (it.meta || it.subtitle) { %>
+                  <p class="eyebrow"><%= [it.subtitle, it.meta].filter(Boolean).join(' · ') %></p>
+                <% } %>
+                <h3><%= it.title %></h3>
+                <% if (it.body) { %><p class="body"><%= it.body %></p><% } %>
+                <% if (it.tags?.length) { %><div class="tags"><% it.tags.forEach(x => { %><span class="tag"><%= x %></span><% }) %></div><% } %>
+                <% if (it.link) { %><p style="margin-top:8px"><a href="<%= it.link %>" target="_blank" rel="noopener"><%= it.linkLabel || 'Open full size' %> ↗</a></p><% } %>
+              </figcaption>
+            </figure>
+          <% }) %>
+        </div>
+      <% } else if (s.layout === 'certs') { %>
+        <div class="certs">
+          <% s.items.forEach(it => { %>
+            <article class="cert">
+              <% if (it.image) { %>
+                <button class="cert-shot" type="button" data-full="<%= it.image %>"
+                        data-title="<%= it.title || '' %>" aria-label="View <%= it.title || 'certificate' %>">
+                  <img src="<%= it.image %>" alt="<%= it.title || 'Certificate' %>" loading="lazy">
+                  <span class="zoom">View</span>
+                </button>
+              <% } else { %>
+                <div class="cert-shot empty-shot" aria-hidden="true">
+                  <svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4">
+                    <circle cx="12" cy="9" r="5.5"/><path d="M8.5 13.5 7 22l5-2.6L17 22l-1.5-8.5"/>
+                  </svg>
+                </div>
+              <% } %>
+              <div class="cert-body">
+                <% if (it.subtitle || it.meta) { %>
+                  <p class="eyebrow"><%= [it.subtitle, it.meta].filter(Boolean).join(' · ') %></p>
+                <% } %>
+                <h3><%= it.title %></h3>
+                <% if (it.body) { %><p class="cred"><%= it.body %></p><% } %>
+                <% if (it.tags?.length) { %><div class="tags"><% it.tags.forEach(x => { %><span class="tag"><%= x %></span><% }) %></div><% } %>
+                <% if (it.link) { %><a class="verify" href="<%= it.link %>" target="_blank" rel="noopener"><%= it.linkLabel || 'Verify' %> ↗</a><% } %>
+              </div>
+            </article>
+          <% }) %>
+        </div>
+      <% } else if (s.layout === 'timeline') { %>
+        <div class="tl"><% s.items.forEach(it => item(it)) %></div>
+      <% } else if (s.layout === 'text') { %>
+        <div class="grid"><% s.items.forEach(it => item(it)) %></div>
+      <% } else { %>
+        <div class="grid <%= s.items.length > 4 ? 'three' : '' %>"><% s.items.forEach(it => item(it)) %></div>
+      <% } %>
+    </div>
+  </section>
+  <% }) %>
+</main>
+
+<footer>
+  <div class="wrap foot">
+    <span><%= c.profile.name %> · <%= c.profile.role %></span>
+    <span><%= c.meta?.footer || '' %></span>
+  </div>
+</footer>
+
+<dialog id="lightbox" class="lb">
+  <button class="lb-close" id="lbClose" type="button" aria-label="Close">✕</button>
+  <img id="lbImg" src="" alt="">
+  <p id="lbCap"></p>
+</dialog>
+
+<script src="/site.js"></script>
+</body>
+</html>

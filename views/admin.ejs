@@ -1,0 +1,280 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Editor · NeuralTerrain</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap">
+<style>
+:root{--bg:#0a1016;--s1:#0f1820;--s2:#15212b;--line:#243642;--ink:#dce8ef;--ink2:#8fa5b3;--ink3:#5d7382;
+--teal:#24c9b6;--amber:#e8944d;--red:#f0685f;--r:10px}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.55 Archivo,system-ui,sans-serif}
+a{color:var(--teal)}
+.bar{position:sticky;top:0;z-index:20;display:flex;align-items:center;gap:12px;padding:12px 20px;
+background:#0a1016ee;backdrop-filter:blur(12px);border-bottom:1px solid var(--line)}
+.bar b{font-size:.95rem;margin-right:auto}
+.bar .st{font:500 .74rem/1 "JetBrains Mono",monospace;color:var(--ink3)}
+.wrap{max-width:960px;margin:0 auto;padding:22px 20px 100px}
+button{font:inherit;cursor:pointer;border-radius:8px;border:1px solid var(--line);background:var(--s1);color:var(--ink2);padding:.5em 1em}
+button:hover{color:var(--ink);border-color:var(--teal)}
+button.go{background:var(--teal);border-color:var(--teal);color:#05171a;font-weight:600}
+button.del{border-color:#3a2326;color:var(--red)}
+button.sm{padding:.3em .6em;font-size:.78rem}
+input,textarea,select{width:100%;font:inherit;color:var(--ink);background:var(--s2);
+border:1px solid var(--line);border-radius:8px;padding:.55em .7em}
+textarea{resize:vertical;min-height:68px}
+label{display:block;margin:10px 0 0}
+label>span{display:block;font:500 .68rem/1 "JetBrains Mono",monospace;letter-spacing:.1em;
+text-transform:uppercase;color:var(--ink3);margin-bottom:5px}
+.card{background:var(--s1);border:1px solid var(--line);border-radius:var(--r);padding:16px;margin-bottom:14px}
+.sec{border-left:2px solid var(--teal)}
+.item{background:var(--s2);border:1px solid var(--line);border-radius:var(--r);padding:14px;margin:10px 0}
+.row{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+.row>label{flex:1 1 200px;margin-top:0}
+.head{display:flex;gap:8px;align-items:center;margin-bottom:8px}
+.head h3,.head h2{margin:0;font-size:1rem;flex:1}
+.thumb{width:100%;max-width:220px;border-radius:8px;border:1px solid var(--line);margin-top:8px;display:block}
+.muted{color:var(--ink3);font-size:.82rem}
+#login{max-width:380px;margin:14vh auto;text-align:center}
+.hide{display:none}
+.toast{position:fixed;right:18px;bottom:18px;z-index:40;background:var(--s1);border:1px solid var(--teal);
+border-radius:10px;padding:11px 16px;font-size:.86rem;opacity:0;transition:.2s;pointer-events:none}
+.toast[data-on="1"]{opacity:1}
+.toast.bad{border-color:var(--red);color:var(--red)}
+</style>
+</head>
+<body>
+
+<div id="login">
+  <h2>NeuralTerrain editor</h2>
+  <p class="muted">Enter your admin password.</p>
+  <input id="pw" type="password" placeholder="Password" autocomplete="current-password">
+  <p><button class="go" id="loginBtn" style="width:100%">Unlock</button></p>
+  <p class="muted" id="loginMsg"></p>
+</div>
+
+<div id="app" class="hide">
+  <div class="bar">
+    <b>NeuralTerrain editor</b>
+    <span class="st" id="status"></span>
+    <button class="sm" onclick="window.open('/','_blank')">View site</button>
+    <button class="go sm" id="save">Save</button>
+  </div>
+  <div class="wrap" id="forms"></div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+const $ = (s) => document.querySelector(s);
+let KEY = localStorage.getItem('nt-key') || '';
+let C = null;
+
+const toast = (m, bad) => {
+  const t = $('#toast');
+  t.textContent = m; t.className = 'toast' + (bad ? ' bad' : ''); t.dataset.on = '1';
+  setTimeout(() => (t.dataset.on = '0'), 2600);
+};
+const api = (url, opt = {}) =>
+  fetch(url, { ...opt, headers: { 'content-type': 'application/json', 'x-admin-key': KEY, ...opt.headers } })
+    .then(async (r) => { const j = await r.json().catch(() => ({})); if (!r.ok) throw new Error(j.error || r.status); return j; });
+
+// ---------- login ----------
+const unlock = async () => {
+  KEY = $('#pw').value || KEY;
+  try {
+    await api('/api/auth', { method: 'POST' });
+    localStorage.setItem('nt-key', KEY);
+    $('#login').classList.add('hide'); $('#app').classList.remove('hide');
+    C = await api('/api/content');
+    render();
+  } catch (e) { $('#loginMsg').textContent = e.message; }
+};
+$('#loginBtn').onclick = unlock;
+$('#pw').onkeydown = (e) => e.key === 'Enter' && unlock();
+if (KEY) unlock();
+
+// ---------- helpers ----------
+const field = (label, val, on, multi) => {
+  const l = document.createElement('label');
+  l.innerHTML = '<span>' + label + '</span>';
+  const el = document.createElement(multi ? 'textarea' : 'input');
+  el.value = val ?? '';
+  el.oninput = () => on(el.value);
+  l.appendChild(el);
+  return l;
+};
+const listField = (label, arr, on) =>
+  field(label + ' (one per line)', (arr || []).join('\n'), (v) => on(v.split('\n').map(s => s.trim()).filter(Boolean)), true);
+
+const btn = (txt, fn, cls = '') => {
+  const b = document.createElement('button');
+  b.textContent = txt; b.className = 'sm ' + cls; b.onclick = fn;
+  return b;
+};
+const move = (arr, i, d) => {
+  const j = i + d;
+  if (j < 0 || j >= arr.length) return;
+  [arr[i], arr[j]] = [arr[j], arr[i]];
+  render();
+};
+
+const upload = async (file, done) => {
+  if (file.size > 10 * 1024 * 1024) return toast('Image is over 10 MB.', true);
+  const data = await new Promise((res) => { const r = new FileReader(); r.onload = () => res(r.result); r.readAsDataURL(file); });
+  toast('Uploading…');
+  try { const { url } = await api('/api/upload', { method: 'POST', body: JSON.stringify({ data }) }); done(url); toast('Uploaded'); }
+  catch (e) { toast(e.message, true); }
+};
+
+const imageField = (obj, key, capKey) => {
+  const box = document.createElement('div');
+  const l = document.createElement('label');
+  l.innerHTML = '<span>Image</span>';
+  const f = document.createElement('input');
+  f.type = 'file'; f.accept = 'image/*';
+  f.onchange = () => f.files[0] && upload(f.files[0], (u) => { obj[key] = u; render(); });
+  l.appendChild(f);
+  box.appendChild(l);
+  box.appendChild(field('Image URL', obj[key], (v) => (obj[key] = v)));
+  if (capKey) box.appendChild(field('Caption', obj[capKey], (v) => (obj[capKey] = v)));
+  if (obj[key]) { const im = document.createElement('img'); im.src = obj[key]; im.className = 'thumb'; box.appendChild(im); }
+  return box;
+};
+
+// ---------- render ----------
+function render() {
+  const root = $('#forms');
+  root.textContent = '';
+
+  // profile
+  const p = document.createElement('div');
+  p.className = 'card';
+  p.innerHTML = '<div class="head"><h2>Profile</h2></div>';
+  ['name', 'role', 'status', 'location', 'email', 'phone'].forEach((k) =>
+    p.appendChild(field(k, C.profile[k], (v) => (C.profile[k] = v))));
+  p.appendChild(field('summary', C.profile.summary, (v) => (C.profile.summary = v), true));
+  p.appendChild(listField('specialties (hero strip, #01…)', C.profile.specialties, (v) => (C.profile.specialties = v)));
+  p.appendChild(imageField(C.profile, 'photo'));
+
+  const lw = document.createElement('div');
+  lw.innerHTML = '<label><span>Links</span></label>';
+  (C.profile.links ||= []).forEach((l, i) => {
+    const r = document.createElement('div');
+    r.className = 'row'; r.style.margin = '6px 0';
+    r.appendChild(field('label', l.label, (v) => (l.label = v)));
+    r.appendChild(field('url', l.url, (v) => (l.url = v)));
+    r.appendChild(btn('✕', () => { C.profile.links.splice(i, 1); render(); }, 'del'));
+    lw.appendChild(r);
+  });
+  lw.appendChild(btn('+ link', () => { C.profile.links.push({ label: '', url: '' }); render(); }));
+  p.appendChild(lw);
+  root.appendChild(p);
+
+  // metrics
+  const m = document.createElement('div');
+  m.className = 'card';
+  m.innerHTML = '<div class="head"><h2>Metrics</h2></div>';
+  (C.metrics ||= []).forEach((x, i) => {
+    const r = document.createElement('div');
+    r.className = 'row'; r.style.margin = '6px 0';
+    r.appendChild(field('value', x.value, (v) => (x.value = v)));
+    r.appendChild(field('label', x.label, (v) => (x.label = v)));
+    const s = document.createElement('label');
+    s.innerHTML = '<span>accent</span><select><option value="">none</option><option value="teal">teal</option><option value="amber">amber</option></select>';
+    s.querySelector('select').value = x.accent || '';
+    s.querySelector('select').onchange = (e) => (x.accent = e.target.value);
+    r.appendChild(s);
+    r.appendChild(btn('✕', () => { C.metrics.splice(i, 1); render(); }, 'del'));
+    m.appendChild(r);
+  });
+  m.appendChild(btn('+ metric', () => { C.metrics.push({ value: '', label: '' }); render(); }));
+  root.appendChild(m);
+
+  // sections
+  C.sections.forEach((s, si) => {
+    const box = document.createElement('div');
+    box.className = 'card sec';
+    const head = document.createElement('div');
+    head.className = 'head';
+    head.innerHTML = '<h2>' + (s.title || s.id) + '</h2>';
+    head.appendChild(btn('↑', () => move(C.sections, si, -1)));
+    head.appendChild(btn('↓', () => move(C.sections, si, 1)));
+    head.appendChild(btn('Delete section', () => { if (confirm('Delete "' + s.title + '" and all its items?')) { C.sections.splice(si, 1); render(); } }, 'del'));
+    box.appendChild(head);
+
+    const r1 = document.createElement('div');
+    r1.className = 'row';
+    r1.appendChild(field('title', s.title, (v) => (s.title = v)));
+    r1.appendChild(field('nav label', s.nav, (v) => (s.nav = v)));
+    r1.appendChild(field('id (url anchor)', s.id, (v) => (s.id = v.replace(/\W+/g, '-').toLowerCase())));
+    const ls = document.createElement('label');
+    ls.innerHTML = '<span>layout</span><select><option>cards</option><option>timeline</option><option>certs</option><option>maps</option><option>gallery</option><option>text</option></select>';
+    ls.querySelector('select').value = s.layout || 'cards';
+    ls.querySelector('select').onchange = (e) => (s.layout = e.target.value);
+    r1.appendChild(ls);
+    box.appendChild(r1);
+    box.appendChild(field('intro', s.intro, (v) => (s.intro = v), true));
+
+    (s.items ||= []).forEach((it, ii) => {
+      const d = document.createElement('div');
+      d.className = 'item';
+      const h = document.createElement('div');
+      h.className = 'head';
+      h.innerHTML = '<h3>' + (it.title || it.caption || 'Item ' + (ii + 1)) + '</h3>';
+      h.appendChild(btn('↑', () => move(s.items, ii, -1)));
+      h.appendChild(btn('↓', () => move(s.items, ii, 1)));
+      h.appendChild(btn('✕', () => { s.items.splice(ii, 1); render(); }, 'del'));
+      d.appendChild(h);
+
+      const r = document.createElement('div');
+      r.className = 'row';
+      r.appendChild(field('title', it.title, (v) => (it.title = v)));
+      r.appendChild(field('subtitle', it.subtitle, (v) => (it.subtitle = v)));
+      r.appendChild(field('meta / date', it.meta, (v) => (it.meta = v)));
+      d.appendChild(r);
+
+      d.appendChild(field('body', it.body, (v) => (it.body = v), true));
+      d.appendChild(listField('bullets', it.bullets, (v) => (it.bullets = v)));
+      d.appendChild(listField('tags', it.tags, (v) => (it.tags = v)));
+      d.appendChild(imageField(it, 'image', 'caption'));
+
+      const r2 = document.createElement('div');
+      r2.className = 'row';
+      r2.appendChild(field('link url', it.link, (v) => (it.link = v)));
+      r2.appendChild(field('link label', it.linkLabel, (v) => (it.linkLabel = v)));
+      const as = document.createElement('label');
+      as.innerHTML = '<span>accent</span><select><option value="">none</option><option value="teal">teal</option><option value="amber">amber</option></select>';
+      as.querySelector('select').value = it.accent || '';
+      as.querySelector('select').onchange = (e) => (it.accent = e.target.value);
+      r2.appendChild(as);
+      d.appendChild(r2);
+      box.appendChild(d);
+    });
+
+    box.appendChild(btn('+ item', () => { s.items.push({ title: 'New item' }); render(); }, 'go'));
+    root.appendChild(box);
+  });
+
+  root.appendChild(btn('+ section', () => {
+    C.sections.push({ id: 'section-' + Date.now().toString(36), nav: 'New', title: 'New section', layout: 'cards', items: [] });
+    render();
+  }, 'go'));
+
+  const f = document.createElement('div');
+  f.className = 'card';
+  f.innerHTML = '<div class="head"><h2>Site</h2></div>';
+  C.meta ||= {};
+  ['siteTitle', 'tagline', 'footer'].forEach((k) => f.appendChild(field(k, C.meta[k], (v) => (C.meta[k] = v))));
+  root.appendChild(f);
+}
+
+$('#save').onclick = async () => {
+  try { await api('/api/content', { method: 'PUT', body: JSON.stringify(C) }); toast('Saved'); $('#status').textContent = 'saved ' + new Date().toLocaleTimeString(); }
+  catch (e) { toast(e.message, true); }
+};
+addEventListener('keydown', (e) => { if ((e.metaKey || e.ctrlKey) && e.key === 's') { e.preventDefault(); $('#save').click(); } });
+</script>
+</body>
+</html>
