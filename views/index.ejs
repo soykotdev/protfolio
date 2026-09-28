@@ -9,7 +9,7 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&display=swap">
 <link rel="stylesheet" href="/site.css">
-<script>try{if(localStorage.getItem('nt-theme')==='light')document.documentElement.dataset.theme='light'}catch(e){}</script>
+<script>(function(){var d=document.documentElement,p;try{p=localStorage.getItem('nt-theme')}catch(e){}if(p!=='light'&&p!=='dark')p='system';d.dataset.pref=p;d.dataset.theme=p==='system'?(matchMedia('(prefers-color-scheme: light)').matches?'light':'dark'):p})()</script>
 </head>
 <body>
 <canvas id="terrain" aria-hidden="true"></canvas>
@@ -35,14 +35,18 @@
       <% c.sections.forEach(s => { %><a href="#<%= s.id %>"><%= s.nav || s.title %></a><% }) %>
     </nav>
 
-    <button class="theme-btn" id="themeBtn" type="button" aria-label="Switch to light theme">
-      <svg class="i-sun" width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true">
-        <circle cx="12" cy="12" r="4.2"/><path d="M12 2.5v2.2M12 19.3v2.2M4.6 4.6l1.6 1.6M17.8 17.8l1.6 1.6M2.5 12h2.2M19.3 12h2.2M4.6 19.4l1.6-1.6M17.8 6.2l1.6-1.6"/>
-      </svg>
-      <svg class="i-moon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round" aria-hidden="true">
-        <path d="M20.5 14.2A8.5 8.5 0 0 1 9.8 3.5a8.5 8.5 0 1 0 10.7 10.7Z"/>
-      </svg>
-    </button>
+    <div class="theme-switch" role="radiogroup" aria-label="Colour theme">
+      <span class="thumb" aria-hidden="true"></span>
+      <button type="button" role="radio" data-pref="light" aria-label="Light theme" title="Light">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="12" r="4.2"/><path d="M12 2.5v2.2M12 19.3v2.2M4.6 4.6l1.6 1.6M17.8 17.8l1.6 1.6M2.5 12h2.2M19.3 12h2.2M4.6 19.4l1.6-1.6M17.8 6.2l1.6-1.6"/></svg>
+      </button>
+      <button type="button" role="radio" data-pref="system" aria-label="Match system theme" title="System">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="4" width="18" height="12" rx="2"/><path d="M8.5 20h7M12 16v4"/></svg>
+      </button>
+      <button type="button" role="radio" data-pref="dark" aria-label="Dark theme" title="Dark">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linejoin="round" aria-hidden="true"><path d="M20.5 14.2A8.5 8.5 0 0 1 9.8 3.5a8.5 8.5 0 1 0 10.7 10.7Z"/></svg>
+      </button>
+    </div>
     <a class="cta" href="mailto:<%= c.profile.email %>">Get in touch <i>↗</i></a>
     <button class="burger" id="burger" type="button" aria-label="Menu" aria-expanded="false">
       <span></span><span></span>

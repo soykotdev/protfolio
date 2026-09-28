@@ -562,8 +562,9 @@ footer { border-top: 1px solid var(--line-soft); padding: 36px 0 56px; }
   --tint-3: #1a10160f;
   --edge: #1a101614;
   --edge-2: #1a10161f;
-  --nav-glass: #ffffffb3;
-  --nav-glass-stuck: #fffffff0;
+  /* near-opaque: 70% white over the black hero mixed to a muddy grey */
+  --nav-glass: #ffffffe8;
+  --nav-glass-stuck: #fffffff7;
   --shadow: #3b1a2a40;
   --drawer-bg: #f6f2f3f7;
   --scrim-a: #f6f2f3a6;
@@ -578,16 +579,29 @@ footer { border-top: 1px solid var(--line-soft); padding: 36px 0 56px; }
 /* the hero keeps its studio black under the light theme */
 :root[data-theme="light"] .hero { background-color: #07060a; }
 
-/* ---------------- theme toggle ---------------- */
-.theme-btn {
-  position: relative; width: 38px; height: 38px; flex: none; padding: 0;
-  display: grid; place-items: center; cursor: pointer;
-  border: 1px solid var(--edge-2); border-radius: 50%;
-  background: var(--tint-2); color: var(--ink-2);
-  transition: color .2s, border-color .2s;
+/* ---------------- theme switch: light / system / dark ---------------- */
+.theme-switch {
+  position: relative; flex: none; display: flex; align-items: center; gap: 2px;
+  padding: 3px; border-radius: 999px;
+  border: 1px solid var(--edge-2); background: var(--tint-2);
 }
-.theme-btn:hover { color: var(--ink); border-color: var(--hot); }
-.theme-btn svg { grid-area: 1 / 1; transition: opacity .25s, transform .45s cubic-bezier(.3,1.4,.5,1); }
-.theme-btn .i-moon { opacity: 0; transform: rotate(-90deg) scale(.5); }
-:root[data-theme="light"] .theme-btn .i-sun { opacity: 0; transform: rotate(90deg) scale(.5); }
-:root[data-theme="light"] .theme-btn .i-moon { opacity: 1; transform: none; }
+.theme-switch button {
+  position: relative; z-index: 1; width: 30px; height: 30px; padding: 0;
+  display: grid; place-items: center; border: 0; border-radius: 50%;
+  background: transparent; color: var(--ink-3); cursor: pointer;
+  transition: color .2s;
+}
+.theme-switch button:hover { color: var(--ink); }
+.theme-switch button[aria-checked="true"] { color: #fff; }
+/* one thumb slides under whichever option is chosen */
+.theme-switch .thumb {
+  position: absolute; top: 3px; left: 3px; width: 30px; height: 30px; border-radius: 50%;
+  background: linear-gradient(135deg, var(--hot), var(--mag));
+  box-shadow: 0 4px 14px -4px var(--hot);
+  transition: transform .35s cubic-bezier(.3,1.3,.5,1);
+}
+:root[data-pref="system"] .theme-switch .thumb { transform: translateX(32px); }
+:root[data-pref="dark"]   .theme-switch .thumb { transform: translateX(64px); }
+@media (max-width: 420px) { .theme-switch button { width: 26px; height: 26px; } .theme-switch .thumb { width: 26px; height: 26px; }
+  :root[data-pref="system"] .theme-switch .thumb { transform: translateX(28px); }
+  :root[data-pref="dark"]   .theme-switch .thumb { transform: translateX(56px); } }

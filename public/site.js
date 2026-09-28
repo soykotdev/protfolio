@@ -4,20 +4,29 @@
   const $ = (id) => document.getElementById(id);
   const still = matchMedia('(prefers-reduced-motion: reduce)').matches;
 
-  // --- theme: dark by default, light is opt-in and remembered ---
-  const themeBtn = $('themeBtn');
-  const applyTheme = (light) => {
-    if (light) root.dataset.theme = 'light';
-    else delete root.dataset.theme;
-    themeBtn?.setAttribute('aria-label', light ? 'Switch to dark theme' : 'Switch to light theme');
-    try { localStorage.setItem('nt-theme', light ? 'light' : 'dark'); } catch {}
-    dispatchEvent(new Event('themechange'));
+  // --- theme: follows the visitor's system unless they pick one ---
+  // The head script already stamped data-pref and data-theme before paint;
+  // this keeps them in sync on clicks and on OS-level changes.
+  const sysLight = matchMedia('(prefers-color-scheme: light)');
+  const switchBtns = [...document.querySelectorAll('.theme-switch [data-pref]')];
+  const resolveTheme = () => {
+    const pref = root.dataset.pref || 'system';
+    const light = pref === 'light' || (pref === 'system' && sysLight.matches);
+    const was = root.dataset.theme;
+    root.dataset.theme = light ? 'light' : 'dark';
+    switchBtns.forEach((b) => b.setAttribute('aria-checked', String(b.dataset.pref === pref)));
+    if (was !== root.dataset.theme) dispatchEvent(new Event('themechange'));
   };
-  if (themeBtn) {
-    themeBtn.setAttribute('aria-label',
-      root.dataset.theme === 'light' ? 'Switch to dark theme' : 'Switch to light theme');
-    themeBtn.onclick = () => applyTheme(root.dataset.theme !== 'light');
-  }
+  switchBtns.forEach((b) => b.addEventListener('click', () => {
+    root.dataset.pref = b.dataset.pref;
+    try {
+      if (b.dataset.pref === 'system') localStorage.removeItem('nt-theme');
+      else localStorage.setItem('nt-theme', b.dataset.pref);
+    } catch {}
+    resolveTheme();
+  }));
+  sysLight.addEventListener('change', () => { if ((root.dataset.pref || 'system') === 'system') resolveTheme(); });
+  resolveTheme();
 
   // --- mobile drawer ---
   const drawer = $('drawer'), burger = $('burger');
