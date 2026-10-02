@@ -45,6 +45,7 @@ border-radius:10px;padding:11px 16px;font-size:.86rem;opacity:0;transition:.2s;p
 .toast[data-on="1"]{opacity:1}
 .toast.bad{border-color:var(--red);color:var(--red)}
 </style>
+<script src="/pdf-compress.js"></script>
 </head>
 <body>
 
@@ -73,10 +74,14 @@ const $ = (s) => document.querySelector(s);
 let KEY = localStorage.getItem('nt-key') || '';
 let C = null;
 
+// one hide timer at a time: a stale one from an earlier toast would cut the
+// next message short. Longer messages stay up longer.
+let toastTimer;
 const toast = (m, bad) => {
   const t = $('#toast');
   t.textContent = m; t.className = 'toast' + (bad ? ' bad' : ''); t.dataset.on = '1';
-  setTimeout(() => (t.dataset.on = '0'), 2600);
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => (t.dataset.on = '0'), Math.max(2600, m.length * 70));
 };
 const api = (url, opt = {}) =>
   fetch(url, { ...opt, headers: { 'content-type': 'application/json', 'x-admin-key': KEY, ...opt.headers } })
@@ -125,10 +130,27 @@ const move = (arr, i, d) => {
 // Files go straight from the browser to Cloudinary: Vercel rejects request
 // bodies over 4.5 MB, and certificate scans are often larger. The server only
 // signs the upload and then builds the (watermarked, signed) delivery URL.
-const MAX = 10 * 1024 * 1024; // Cloudinary free-plan cap per file
+const MAX = 10 * 1024 * 1024;      // Cloudinary free-plan cap per file
+const PDF_TARGET = 2 * 1024 * 1024; // PDFs above this are compressed first
+const PDF_DPI = 200;                // ...but never below this resolution
+const mb = (n) => (n / 1048576).toFixed(2) + ' MB';
 const upload = async (file, protect, done) => {
   const pdf = file.type === 'application/pdf';
   if (!pdf && !file.type.startsWith('image/')) return toast('Upload an image or a PDF.', true);
+
+  // carried into the final toast: a toast of its own would be replaced instantly
+  let note = '';
+  if (pdf && file.size > PDF_TARGET) {
+    try {
+      const r = await compressPdf(file, { maxBytes: PDF_TARGET, dpi: PDF_DPI, onProgress: (m) => toast(m) });
+      file = new File([r.blob], file.name, { type: 'application/pdf' });
+      note = ` Compressed ${mb(r.before)} → ${mb(r.after)} at ${r.dpi} DPI` +
+             (r.overTarget ? ' (still over 2 MB at the lowest quality).' : '.');
+    } catch (e) {
+      return toast('Could not compress this PDF: ' + e.message, true);
+    }
+  }
+
   if (file.size > MAX) {
     return toast(`${(file.size / 1048576).toFixed(1)} MB is over the 10 MB limit. Compress it or export page 1 as a JPG.`, true);
   }
@@ -145,7 +167,7 @@ const upload = async (file, protect, done) => {
       method: 'POST', body: JSON.stringify({ publicId: up.public_id, format: up.format }),
     });
     done(url);
-    toast(protect ? 'Uploaded with watermark. Click Save.' : 'Uploaded. Click Save.');
+    toast((protect ? 'Uploaded with watermark.' : 'Uploaded.') + note + ' Click Save.');
   } catch (e) { toast(e.message, true); }
 };
 
@@ -169,7 +191,7 @@ const imageField = (obj, key, capKey, protectDefault = false) => {
   if (protectDefault) {
     const n = document.createElement('p');
     n.className = 'muted';
-    n.textContent = 'PDFs show their first page. Watermarked files are served only through a signed link; editing the link to remove the watermark breaks it.';
+    n.textContent = 'PDFs over 2 MB are compressed in your browser first, keeping at least 200 DPI. The site shows page 1. Watermarked files are served only through a signed link; editing the link to remove the watermark breaks it.';
     box.appendChild(n);
   }
   box.appendChild(field('Image URL', obj[key], (v) => (obj[key] = v)));
